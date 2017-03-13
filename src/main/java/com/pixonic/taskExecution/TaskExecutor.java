@@ -48,7 +48,9 @@ class TaskExecutor {
                         } else {
                             long taskTime = taskFromQueue.getExecutionTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
                             long waitTime = taskTime - System.currentTimeMillis();
-                            wait(waitTime < 0 ? 0 : waitTime);
+                            if(waitTime>0) {
+                                wait(waitTime);
+                            }
                         }
                     }
                 }
