@@ -40,7 +40,7 @@ public class TestTaskManager {
     }
 
     @Test
-    public void runAtExactTime() {
+    public void runAtExactTime() throws InterruptedException {
         class Flag {
             private boolean value;
             public boolean getValue() {
@@ -60,6 +60,7 @@ public class TestTaskManager {
             assertFalse(flag.getValue());
         }
         while (LocalDateTime.now().isEqual(executionTime)) {}
+        Thread.sleep(1);
         assertTrue(flag.getValue());
     }
 
@@ -102,6 +103,25 @@ public class TestTaskManager {
                 return null;
             }, executionTime);
         };
+    }
+
+    // test is correct only if thread poll size is 1
+    @Test
+    public void orderOfSameTimeTwoTasks() throws InterruptedException {
+        LocalDateTime executionTime = LocalDateTime.now().plusSeconds(1);
+        List<String> list = Collections.synchronizedList(new ArrayList<>());
+        taskManager.runActionAtTime(() -> {
+            list.add("first");
+            return null;
+        }, executionTime);
+        taskManager.runActionAtTime(() -> {
+            list.add("second");
+            return null;
+        }, executionTime);
+        Thread.sleep(1500);
+        assertSame(list.size(), 2);
+        assertEquals(list.get(0), "first");
+        assertEquals(list.get(1), "second");
     }
 
     // test is correct only if thread poll size is 1
